@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Modpack Installer.iml" filepath="$PROJECT_DIR$/Modpack Installer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/ModpackInstaller.iml" filepath="$PROJECT_DIR$/ModpackInstaller.iml" />
     </modules>
   </component>
 </project>

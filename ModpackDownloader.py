@@ -7,18 +7,18 @@ If a license applies for this project, the former can be found
 in every distribution, as a "LICENSE" file at top level.
 """
 
-import os
-import shutil
-import sys
-import zipfile
+
 # Built-in Imports
 from datetime import datetime
+import os
+import shutil
+import zipfile
 
-import requests
 # Third Party Imports
 from bs4 import BeautifulSoup
 from loguru import logger
-
+import requests
+from alive_progress import alive_bar
 
 # Local Application Imports
 
@@ -72,20 +72,25 @@ class ModpackDownloader:
         """
 
         download_zip: str = os.path.join(self.__mods_folder_path, "modpack.zip")
-        file_size: int = int(requests.head(self.__get_redirect_link()).headers["content-size"])
-        total_downloaded: int = 0
 
         # Gets the redirect link and opens a request stream to download the content
         with requests.get(self.__get_redirect_link(), stream=True) as r:
             r.raise_for_status()
-            logger.info("Beginning downloads")
+            content_size: int = int(r.headers["content-length"])
 
-            # Downloads a moderately sized chunk per iteration, writing it into a zip in the "mods" folder.
-            with open(download_zip, 'wb') as file:
-                for chunk in r.iter_content(chunk_size=8192):
-                    file.write(chunk)
-                    sys.stdout.write(fr"[INFO]: Downloading modpack... ({(total_downloaded*100) / file_size})")
-                    sys.stdout.flush()
+            # Initialises an alive bar to show completion
+            with alive_bar(content_size//8192+1, force_tty=True, title="Downloading mods", monitor=True,
+                           elapsed=False, stats=False, theme="smooth") as bar:
+
+                with open(download_zip, 'wb') as file:
+                    # Downloads a moderately sized chunk per iteration, writing it into a zip in the "mods" folder.
+                    for chunk in r.iter_content(chunk_size=8192):
+                        file.write(chunk)
+                        bar()
+
+                    # Finishes the remaining part of the progress bar (Because of precision losses)
+                    while bar.current() < (content_size//8192):
+                        bar()
 
         # Extracts the zip contents into the mods folder
         with zipfile.ZipFile(download_zip, 'r') as zip_ref:
