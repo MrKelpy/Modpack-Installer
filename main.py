@@ -9,11 +9,13 @@ in every distribution, as a "LICENSE" file at top level.
 
 # Built-in Imports
 import logging
+import traceback
 
 # Third Party Imports
 # Local Application Imports
 from LaminariaCore.utils.dateutils import get_formatted_date_now
 from LogHandler import LogHandler
+from ModpackDownloader import ModpackDownloader
 
 if __name__ == "__main__":
 
@@ -21,3 +23,11 @@ if __name__ == "__main__":
     loghandler: LogHandler = LogHandler()
     loghandler.pack_latest()
     logging.info(get_formatted_date_now(include_seconds=True, formatting=2).replace(":", "."))
+
+    # Performs the main functions of the program
+    # noinspection PyBroadException
+    try:
+        ModpackDownloader().start()
+
+    except Exception:
+        logging.critical(traceback.format_exc())

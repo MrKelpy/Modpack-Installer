@@ -21,15 +21,20 @@ from typing import List, Union
 class LogHandler:
     """
     This class implements a handler for the logging functions,
-    with utils for archiving and writing into log files and more.
+    with utils for archiving log files.
     """
 
     def __init__(self):
         self.__logs_path = "./logs"
-        self.__log_format = r"[%(levelname)s]: %(message)s"
+        self.__log_format = logging.Formatter(r"[%(levelname)s]: %(message)s")
         self.__latest_log_path = os.path.join("./logs", "latest.log")
         os.makedirs(self.__logs_path, exist_ok=True)
-        logging.basicConfig(format=self.__log_format, filename=self.__latest_log_path, level=logging.INFO)
+
+        logger: logging.Logger = logging.getLogger(__name__)
+        c_handler: logging.StreamHandler = logging.StreamHandler()
+        c_handler.setFormatter(self.__log_format)
+        logger.addHandler(c_handler)
+        logging.basicConfig(filename=self.__latest_log_path, level=logging.INFO)
 
 
     def pack_latest(self) -> None:
