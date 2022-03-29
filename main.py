@@ -8,10 +8,9 @@ in every distribution, as a "LICENSE" file at top level.
 """
 
 # Built-in Imports
-import logging
-import traceback
-
 # Third Party Imports
+from loguru import logger
+
 # Local Application Imports
 from LaminariaCore.utils.dateutils import get_formatted_date_now
 from LogHandler import LogHandler
@@ -22,7 +21,7 @@ if __name__ == "__main__":
     # Handles the logging tasks before the actual program runs
     loghandler: LogHandler = LogHandler()
     loghandler.pack_latest()
-    logging.info(get_formatted_date_now(include_seconds=True, formatting=2).replace(":", "."))
+    logger.info(get_formatted_date_now(include_seconds=True, formatting=2).replace(":", "."))
 
     # Performs the main functions of the program
     # noinspection PyBroadException
@@ -30,4 +29,4 @@ if __name__ == "__main__":
         ModpackDownloader().start()
 
     except Exception:
-        logging.critical(traceback.format_exc())
+        logger.exception("Oops! The problem crashed due to a fatal error!")

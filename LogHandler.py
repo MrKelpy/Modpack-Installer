@@ -7,14 +7,16 @@ If a license applies for this project, the former can be found
 in every distribution, as a "LICENSE" file at top level.
 """
 
-import logging
 import os
+import sys
 import tarfile
 # Built-in Imports
 from typing import List, Union
 
-
 # Third Party Imports
+from loguru import logger
+
+
 # Local Application Imports
 
 
@@ -25,16 +27,13 @@ class LogHandler:
     """
 
     def __init__(self):
+        logger.remove()
         self.__logs_path = "./logs"
-        self.__log_format = logging.Formatter(r"[%(levelname)s]: %(message)s")
+        self.__log_format = "[{level}] [{time:DD/MM/YYYY HH:mm:ss}]: {message}"
         self.__latest_log_path = os.path.join("./logs", "latest.log")
         os.makedirs(self.__logs_path, exist_ok=True)
-
-        logger: logging.Logger = logging.getLogger(__name__)
-        c_handler: logging.StreamHandler = logging.StreamHandler()
-        c_handler.setFormatter(self.__log_format)
-        logger.addHandler(c_handler)
-        logging.basicConfig(filename=self.__latest_log_path, level=logging.INFO)
+        logger.add(sys.stdout, format=self.__log_format, level="INFO", backtrace=True, diagnose=True)
+        logger.add(self.__latest_log_path, format=self.__log_format, level="DEBUG", backtrace=True, diagnose=True)
 
 
     def pack_latest(self) -> None:
@@ -43,7 +42,6 @@ class LogHandler:
         with the date of logging (As seen in the first line of the logging file)
         if there is a "latest.log" file.
         When all is done, clears the file.
-
         :return:
         """
 
@@ -72,4 +70,4 @@ class LogHandler:
         if not raw_date:
             return
 
-        return raw_date[0].split(":")[1].strip()
+        return raw_date[0].split(":")[-1].strip()

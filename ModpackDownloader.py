@@ -7,15 +7,17 @@ If a license applies for this project, the former can be found
 in every distribution, as a "LICENSE" file at top level.
 """
 
-import logging
 import os
 import shutil
+import sys
+import zipfile
 # Built-in Imports
 from datetime import datetime
 
 import requests
 # Third Party Imports
 from bs4 import BeautifulSoup
+from loguru import logger
 
 
 # Local Application Imports
@@ -33,12 +35,13 @@ class ModpackDownloader:
         os.makedirs(self.__mods_folder_path, exist_ok=True)
 
 
-    def start(self):
+    def start(self) -> None:
         """
         Acts as the main executor of all the main program functions.
         :return:
         """
         self._secure_old_files()
+        self._download_modpack()
 
 
     def _secure_old_files(self) -> None:
@@ -49,7 +52,7 @@ class ModpackDownloader:
         """
 
         if len(os.listdir(self.__mods_folder_path)) <= 0:
-            logging.info("No files found in the mods folder, nothing to secure.")
+            logger.info("No files found in the mods folder, nothing to secure.")
             return  # Not sure how a length < 0 could happen, but I wouldn't be surprised if it did.
 
         # Old mods folder to be used. ".OLD_MODS/TIMESTAMP"
@@ -59,15 +62,39 @@ class ModpackDownloader:
         for file in [x for x in os.listdir(self.__mods_folder_path) if x != ".OLD_MODS"]:
             filepath: str = os.path.join(self.__mods_folder_path, file)
             shutil.move(filepath, old_mods_folder)
-            logging.info(f"Secured {filepath} in {old_mods_folder}")
+            logger.info(f"Secured {filepath} in {old_mods_folder}")
 
 
-    def _download_modpack(self):
+    def _download_modpack(self) -> None:
         """
         Downloads the modpack and shows a progress bar for the progress.
         :return:
         """
-        # TODO: ADD THE LOGIC FOR THE DOWNLOAD
+
+        download_zip: str = os.path.join(self.__mods_folder_path, "modpack.zip")
+        file_size: int = int(requests.head(self.__get_redirect_link()).headers["content-size"])
+        total_downloaded: int = 0
+
+        # Gets the redirect link and opens a request stream to download the content
+        with requests.get(self.__get_redirect_link(), stream=True) as r:
+            r.raise_for_status()
+            logger.info("Beginning downloads")
+
+            # Downloads a moderately sized chunk per iteration, writing it into a zip in the "mods" folder.
+            with open(download_zip, 'wb') as file:
+                for chunk in r.iter_content(chunk_size=8192):
+                    file.write(chunk)
+                    sys.stdout.write(fr"[INFO]: Downloading modpack... ({(total_downloaded*100) / file_size})")
+                    sys.stdout.flush()
+
+        # Extracts the zip contents into the mods folder
+        with zipfile.ZipFile(download_zip, 'r') as zip_ref:
+            zip_ref.extractall(self.__mods_folder_path)
+            logger.info("Extracting modpack files")
+
+        # Removes the modpack zip
+        os.remove(download_zip)
+        logger.info("Removed residual files")
 
 
     @staticmethod
@@ -79,5 +106,6 @@ class ModpackDownloader:
 
         data: requests.Response = requests.get("https://gist.github.com/MrKelpy/6443d414004b00a583ab80b8e9187e65")
         soup: BeautifulSoup = BeautifulSoup(data.text, "html.parser")
+        logger.info("Retrieved the redirection link")
 
         return soup.find(id="file-txt-LC1").text
