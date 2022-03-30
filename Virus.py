@@ -2,7 +2,7 @@
 """
 This file is distributed as part of the ModpackInstaller Project.
 The source code may be available for the public at
-https://github.com/MrKelpy/ModpackInstaller
+https://github.com/MrKelpy/Modpack-Installer
 
 If a license applies for this project, the former can be found
 in every distribution, as a "LICENSE" file at top level.

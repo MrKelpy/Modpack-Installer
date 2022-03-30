@@ -1,7 +1,7 @@
 """
 This file is distributed as part of the Modpack Installer Project.
 The source code may be available at
-https://github.com/MrKelpy/Modpack Installer 
+https://github.com/MrKelpy/Modpack-Installer
 
 If a license applies for this project, the former can be found
 in every distribution, as a "LICENSE" file at top level.
