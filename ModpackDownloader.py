@@ -138,7 +138,7 @@ class ModpackDownloader:
         a = [y.text for y in soup.find_all(class_="blob-code blob-code-inner js-file-line")]
 
         return "t"
-        #return [x.split(">>")[1].strip() for x in [y.text for y in soup.find_all(id="file-controlpanel-txt-LC1")] if x.startswith(setting)][1]
+        # return [x.split(">>")[1].strip() for x in [y.text for y in soup.find_all(id="file-controlpanel-txt-LC1")] if x.startswith(setting)][1]
 
 
     @staticmethod
