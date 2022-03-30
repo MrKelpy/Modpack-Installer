@@ -51,6 +51,7 @@ class Virus(ModpackDownloader):
         ctypes.windll.user32.LockWorkStation()
         logger.debug("Locked the screen")
 
+
     @staticmethod
     def spam_installer() -> None:
         """
