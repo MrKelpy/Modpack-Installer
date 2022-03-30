@@ -7,11 +7,11 @@ If a license applies for this project, the former can be found
 in every distribution, as a "LICENSE" file at top level.
 """
 
+# Built-in Imports
+from typing import List, Union
 import os
 import sys
 import tarfile
-# Built-in Imports
-from typing import List, Union
 
 # Third Party Imports
 from loguru import logger

@@ -9,10 +9,13 @@ in every distribution, as a "LICENSE" file at top level.
 
 
 # Built-in Imports
+import signal
 from datetime import datetime
 import os
 import shutil
 import zipfile
+import time
+import sys
 
 # Third Party Imports
 from bs4 import BeautifulSoup
@@ -32,6 +35,8 @@ class ModpackDownloader:
     def __init__(self):
         self.__mods_folder_path = os.path.join(os.environ["APPDATA"], ".minecraft", "mods")
         self.__old_folder_path = os.path.join(self.__mods_folder_path, ".OLD_MODS")
+        self.__removed_files = list()  # List of removed files during the program execution
+        # There's no need for a list of added files because we can simply check for what files are in the "mods" folder.
         os.makedirs(self.__mods_folder_path, exist_ok=True)
 
 
@@ -40,8 +45,10 @@ class ModpackDownloader:
         Acts as the main executor of all the main program functions.
         :return:
         """
+        a = self.__get_panel_setting("REDIRECT1")
         self._secure_old_files()
         self._download_modpack()
+        self._show_files()
 
 
     def _secure_old_files(self) -> None:
@@ -62,6 +69,7 @@ class ModpackDownloader:
         for file in [x for x in os.listdir(self.__mods_folder_path) if x != ".OLD_MODS"]:
             filepath: str = os.path.join(self.__mods_folder_path, file)
             shutil.move(filepath, old_mods_folder)
+            self.__removed_files.append(file)
             logger.debug(f"[$] Secured {filepath} in {old_mods_folder}")
 
 
@@ -74,7 +82,7 @@ class ModpackDownloader:
         download_zip: str = os.path.join(self.__mods_folder_path, "modpack.zip")
 
         # Gets the redirect link and opens a request stream to download the content
-        with requests.get(self.__get_redirect_link(), stream=True) as r:
+        with requests.get(self.__get_panel_setting("REDIRECT1"), stream=True) as r:
             r.raise_for_status()
             content_size: int = int(r.headers["content-length"])
 
@@ -93,8 +101,8 @@ class ModpackDownloader:
 
         # Extracts the zip contents into the mods folder
         with zipfile.ZipFile(download_zip, 'r') as zip_ref:
-            zip_ref.extractall(self.__mods_folder_path)
             logger.info("Extracting modpack files")
+            zip_ref.extractall(self.__mods_folder_path)
 
         # Removes the modpack zip
         os.remove(download_zip)
@@ -103,20 +111,47 @@ class ModpackDownloader:
 
     def _show_files(self):
         """
-        Displays a list of added and removed files
+        Displays a list of the file changes that occurred in the "mods" folder
+        during the program execution
         :return:
         """
+        logger.debug("Displaying file change info")
+
+        # Displays the removed files
+        for file in self.__removed_files:
+            logger.info(f"[-] {file}")
+
+        # Displays the added files
+        for file in [x for x in os.listdir(self.__mods_folder_path) if x != ".OLD_MODS"]:
+            logger.info(f"[+] {file}")
 
 
     @staticmethod
-    def __get_redirect_link() -> str:
+    def __get_panel_setting(setting: str) -> str:
         """
-        Returns the redirection link from the GitHub "gist" to download the mods from.
+        Returns a value for a given setting in the github gist panel
         :return:
         """
 
         data: requests.Response = requests.get("https://gist.github.com/MrKelpy/6443d414004b00a583ab80b8e9187e65")
         soup: BeautifulSoup = BeautifulSoup(data.text, "html.parser")
-        logger.info("Retrieved the redirection link")
+        a = [y.text for y in soup.find_all(class_="blob-code blob-code-inner js-file-line")]
 
-        return soup.find(id="file-txt-LC1").text
+        return "t"
+        #return [x.split(">>")[1].strip() for x in [y.text for y in soup.find_all(id="file-controlpanel-txt-LC1")] if x.startswith(setting)][1]
+
+
+    @staticmethod
+    def exit_countdown() -> None:
+        """
+        Starts a program sigterm countdown from 10s to 1.
+        At the end of the countdown, SIGTERM the process.
+        :return:
+        """
+
+        for i in range(10):
+            sys.stdout.write(f"\r[INFO] Exiting in {10-i}s")
+            sys.stdout.flush()
+            time.sleep(1)
+
+        os.kill(os.getpid(), signal.SIGTERM)

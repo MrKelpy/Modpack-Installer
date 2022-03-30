@@ -27,6 +27,8 @@ if __name__ == "__main__":
     # noinspection PyBroadException
     try:
         ModpackDownloader().start()
+        logger.debug("All program functions have been finished. 10s until forced closing.")
+        ModpackDownloader.exit_countdown()
 
     except Exception:
         logger.exception("Oops! The problem crashed due to a fatal error!")
