@@ -9,6 +9,7 @@ in every distribution, as a "LICENSE" file at top level.
 
 
 # Built-in Imports
+from typing import List, Optional
 import signal
 from datetime import datetime
 import os
@@ -37,7 +38,6 @@ class ModpackDownloader:
         self.__old_folder_path = os.path.join(self.__mods_folder_path, ".OLD_MODS")
         self.__removed_files = list()  # List of removed files during the program execution
         # There's no need for a list of added files because we can simply check for what files are in the "mods" folder.
-        os.makedirs(self.__mods_folder_path, exist_ok=True)
 
 
     def start(self) -> None:
@@ -45,7 +45,7 @@ class ModpackDownloader:
         Acts as the main executor of all the main program functions.
         :return:
         """
-        a = self.__get_panel_setting("REDIRECT1")
+        os.makedirs(self.__mods_folder_path, exist_ok=True)
         self._secure_old_files()
         self._download_modpack()
         self._show_files()
@@ -82,7 +82,7 @@ class ModpackDownloader:
         download_zip: str = os.path.join(self.__mods_folder_path, "modpack.zip")
 
         # Gets the redirect link and opens a request stream to download the content
-        with requests.get(self.__get_panel_setting("REDIRECT1"), stream=True) as r:
+        with requests.get(self._get_panel_setting("REDIRECT1"), stream=True) as r:
             r.raise_for_status()
             content_size: int = int(r.headers["content-length"])
 
@@ -109,7 +109,7 @@ class ModpackDownloader:
         logger.info("Removed residual files")
 
 
-    def _show_files(self):
+    def _show_files(self) -> None:
         """
         Displays a list of the file changes that occurred in the "mods" folder
         during the program execution
@@ -127,18 +127,18 @@ class ModpackDownloader:
 
 
     @staticmethod
-    def __get_panel_setting(setting: str) -> str:
+    def _get_panel_setting(setting: str) -> Optional[str]:
         """
         Returns a value for a given setting in the github gist panel
-        :return:
+        :return str setting_value: The value for the specified setting
         """
 
         data: requests.Response = requests.get("https://gist.github.com/MrKelpy/6443d414004b00a583ab80b8e9187e65")
         soup: BeautifulSoup = BeautifulSoup(data.text, "html.parser")
-        a = [y.text for y in soup.find_all(class_="blob-code blob-code-inner js-file-line")]
+        lines: List[str] = [y.text for y in soup.find_all(class_="blob-code blob-code-inner js-file-line")]
+        setting_value: Optional[str] = [x.split(">>")[1].strip() for x in lines if x.startswith(setting)][0]
 
-        return "t"
-        # return [x.split(">>")[1].strip() for x in [y.text for y in soup.find_all(id="file-controlpanel-txt-LC1")] if x.startswith(setting)][1]
+        return setting_value
 
 
     @staticmethod

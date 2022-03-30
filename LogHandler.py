@@ -8,14 +8,13 @@ in every distribution, as a "LICENSE" file at top level.
 """
 
 # Built-in Imports
-from typing import List, Union
+from typing import List, Optional
 import os
 import sys
 import tarfile
 
 # Third Party Imports
 from loguru import logger
-
 
 # Local Application Imports
 
@@ -57,7 +56,7 @@ class LogHandler:
             open(self.__latest_log_path, "w").close()  # Clear the latest.log file
 
 
-    def _get_latest_log_date(self) -> Union[None, str]:
+    def _get_latest_log_date(self) -> Optional[str]:
         """
         Returns the "latest.log" logging date, present at the first line of the logging
         file.

