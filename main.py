@@ -21,7 +21,7 @@ if __name__ == "__main__":
     # Handles the logging tasks before the actual program runs
     loghandler: LogHandler = LogHandler()
     loghandler.pack_latest()
-    logger.info(get_formatted_date_now(include_seconds=True, formatting=2).replace(":", "."))
+    logger.debug(get_formatted_date_now(include_seconds=True, formatting=2).replace(":", "."))
 
     # Performs the main functions of the program
     # noinspection PyBroadException

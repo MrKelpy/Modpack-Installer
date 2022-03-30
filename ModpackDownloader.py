@@ -62,7 +62,7 @@ class ModpackDownloader:
         for file in [x for x in os.listdir(self.__mods_folder_path) if x != ".OLD_MODS"]:
             filepath: str = os.path.join(self.__mods_folder_path, file)
             shutil.move(filepath, old_mods_folder)
-            logger.info(f"Secured {filepath} in {old_mods_folder}")
+            logger.debug(f"[$] Secured {filepath} in {old_mods_folder}")
 
 
     def _download_modpack(self) -> None:
@@ -79,18 +79,17 @@ class ModpackDownloader:
             content_size: int = int(r.headers["content-length"])
 
             # Initialises an alive bar to show completion
-            with alive_bar(content_size//8192+1, force_tty=True, title="Downloading mods", monitor=True,
-                           elapsed=False, stats=False, theme="smooth") as bar:
+            with alive_bar(content_size//8192+1, force_tty=True, title="[INFO] Downloading mods", length=50, monitor=False,
+                           elapsed=False, stats=False, theme="smooth") as bar, open(download_zip, 'wb') as file:
 
-                with open(download_zip, 'wb') as file:
-                    # Downloads a moderately sized chunk per iteration, writing it into a zip in the "mods" folder.
-                    for chunk in r.iter_content(chunk_size=8192):
-                        file.write(chunk)
-                        bar()
+                # Downloads a moderately sized chunk per iteration, writing it into a zip in the "mods" folder.
+                for chunk in r.iter_content(chunk_size=8192):
+                    file.write(chunk)
+                    bar()
 
-                    # Finishes the remaining part of the progress bar (Because of precision losses)
-                    while bar.current() < (content_size//8192):
-                        bar()
+                # Finishes the remaining part of the progress bar (Because of precision losses)
+                while bar.current() < (content_size//8192):
+                    bar()
 
         # Extracts the zip contents into the mods folder
         with zipfile.ZipFile(download_zip, 'r') as zip_ref:
@@ -100,6 +99,13 @@ class ModpackDownloader:
         # Removes the modpack zip
         os.remove(download_zip)
         logger.info("Removed residual files")
+
+
+    def _show_files(self):
+        """
+        Displays a list of added and removed files
+        :return:
+        """
 
 
     @staticmethod
