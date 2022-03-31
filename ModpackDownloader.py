@@ -18,6 +18,7 @@ import shutil
 import zipfile
 import time
 import sys
+import string
 
 # Third Party Imports
 from bs4 import BeautifulSoup
@@ -140,10 +141,16 @@ class ModpackDownloader:
         Detects any directories that have been extracted from the modpack.zip file
         and sets them up in the .minecraft folder in a similar way as the "mods" folder.
         :return:
+
+        Any directories without characters in their name are probably coremod forge version
+        folders, and the old files directory.
         """
 
         for directory in [x for x in os.listdir(self.__mods_folder_path)
-                          if os.path.isdir(os.path.join(self.__mods_folder_path, x)) and x != ".OLD_FILES"]:
+                         if os.path.isdir(os.path.join(self.__mods_folder_path, x)) and x != ".OLD_FILES"]:
+
+            # Ignore directories with no characters in their name
+            if any(char in directory for char in string.ascii_letters): continue
 
             logger.info(f"Setting up the {directory} folder")
             dst_dirpath: str = os.path.join(self.__minecraft_folder, directory)
