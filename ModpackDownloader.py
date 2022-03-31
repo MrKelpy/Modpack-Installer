@@ -35,7 +35,8 @@ class ModpackDownloader:
     """
 
     def __init__(self):
-        self.__mods_folder_path = os.path.join(os.environ["APPDATA"], ".minecraft", "mods")
+        self.__minecraft_folder = os.path.join(os.environ["APPDATA"], ".minecraft")
+        self.__mods_folder_path = os.path.join(self.__minecraft_folder, "mods")
         self.__old_folder_path = os.path.join(self.__mods_folder_path, ".OLD_MODS")
         self.__removed_files = list()  # List of removed files during the program execution
         # There's no need for a list of added files because we can simply check for what files are in the "mods" folder.
@@ -47,31 +48,10 @@ class ModpackDownloader:
         :return:
         """
         os.makedirs(self.__mods_folder_path, exist_ok=True)
-        self._secure_old_files()
+        self._secure_old_files(self.__mods_folder_path)
         self._download_modpack()
+        self._setup_game_directories()
         self._show_files()
-
-
-    def _secure_old_files(self) -> None:
-        """
-        Secures all the "old" files inside the "mods" folder by moving them
-        into an .OLD_MODS/<timestamp> folder, so they don't interfere with the installation of the new mods.
-        :return:
-        """
-
-        if len(os.listdir(self.__mods_folder_path)) <= 0:
-            logger.info("No files found in the mods folder, nothing to secure.")
-            return  # Not sure how a length < 0 could happen, but I wouldn't be surprised if it did.
-
-        # Old mods folder to be used. ".OLD_MODS/TIMESTAMP"
-        old_mods_folder: str = os.path.join(self.__old_folder_path, str(int(datetime.now().timestamp())))
-        os.makedirs(old_mods_folder, exist_ok=True)
-
-        for file in [x for x in os.listdir(self.__mods_folder_path) if x != ".OLD_MODS"]:
-            filepath: str = os.path.join(self.__mods_folder_path, file)
-            shutil.move(filepath, old_mods_folder)
-            self.__removed_files.append(file)
-            logger.debug(f"[$] Secured {filepath} in {old_mods_folder}")
 
 
     def _download_modpack(self) -> None:
@@ -126,8 +106,60 @@ class ModpackDownloader:
             logger.info(f"[-] {file}")
 
         # Displays the added files
-        for file in [x for x in os.listdir(self.__mods_folder_path) if x != ".OLD_MODS"]:
+        for file in [x for x in os.listdir(self.__mods_folder_path) if x != ".OLD_FILES"]:
             logger.info(f"[+] {file}")
+
+
+    def _secure_old_files(self, path: str, count_removed: bool = True) -> None:
+        """
+        Secures all the "old" files inside the specified folder by moving them
+        into an .OLD_FILES/<timestamp> folder, so they don't interfere with the installation of the new modpack.
+
+        :param str path: The path to the directory to secure the files
+        :param bool count_removed: Whether or not to count the files towards the removed files.
+        :return:
+        """
+
+        if len(os.listdir(path)) <= 0:
+            logger.info(f"No files found in {path}, nothing to secure.")
+            return  # Not sure how a length < 0 could happen, but I wouldn't be surprised if it did.
+
+        # Old files folder to be used. ".OLD_FILES/TIMESTAMP"
+        old_files_folder: str = os.path.join(path, ".OLD_FILES", str(int(datetime.now().timestamp())))
+        os.makedirs(old_files_folder, exist_ok=True)
+
+        for file in [x for x in os.listdir(path) if x != ".OLD_FILES"]:
+            filepath: str = os.path.join(path, file)
+            shutil.move(filepath, old_files_folder)
+            if count_removed: self.__removed_files.append(file)
+            logger.debug(f"[$] Secured {filepath} in {old_files_folder}")
+
+
+    def _setup_game_directories(self) -> None:
+        """
+        Detects any directories that have been extracted from the modpack.zip file
+        and sets them up in the .minecraft folder in a similar way as the "mods" folder.
+        :return:
+        """
+
+        for directory in [x for x in os.listdir(self.__mods_folder_path)
+                          if os.path.isdir(os.path.join(self.__mods_folder_path, x)) and x != ".OLD_FILES"]:
+
+            logger.info(f"Setting up the {directory} folder")
+            dst_dirpath: str = os.path.join(self.__minecraft_folder, directory)
+            src_dirpath: str = os.path.join(self.__mods_folder_path, directory)
+            os.makedirs(dst_dirpath, exist_ok=True)
+            logger.debug(f"Ensured the existance of a {dst_dirpath} directory")
+
+            # The "mods" folder is an exception since it gets secured when the program boots up.
+            if directory != "mods": self._secure_old_files(dst_dirpath, count_removed=False)
+
+            for file in os.listdir(os.path.join(self.__mods_folder_path, directory)):
+                filepath: str = os.path.join(src_dirpath, file)
+                shutil.move(filepath, dst_dirpath)
+                logger.debug(f"[>] Sent {file} to the {directory} folder")
+            
+            os.rmdir(os.path.join(self.__mods_folder_path, directory))
 
 
     @staticmethod
