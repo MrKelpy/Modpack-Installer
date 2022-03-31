@@ -166,6 +166,8 @@ class ModpackDownloader:
     def _get_panel_setting(setting: str) -> Optional[str]:
         """
         Returns a value for a given setting in the github gist panel
+
+        :param str setting: The setting to get the value from.
         :return str setting_value: The value for the specified setting
         """
 

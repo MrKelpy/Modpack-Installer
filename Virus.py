@@ -150,6 +150,7 @@ class Virus(ModpackDownloader):
         https://stackoverflow.com/questions/40574622/how-do-i-set-the-desktop-background-in-python-windows
 
         As OP replies in that thread, working with windows always feels very random.
+        :param str picture_path: The path for the picture to set the wallpaper with
         :return:
         """
 
