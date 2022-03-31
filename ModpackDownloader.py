@@ -9,6 +9,7 @@ in every distribution, as a "LICENSE" file at top level.
 
 
 # Built-in Imports
+import random
 from typing import List, Optional
 import signal
 from datetime import datetime
@@ -80,24 +81,27 @@ class ModpackDownloader:
         """
 
         download_zip: str = os.path.join(self.__mods_folder_path, "modpack.zip")
+        chosen_bar: str = random.choice(["classic", "classic2", "squares", "ruler2", "brackets", "fish"])
+        chunk_size: int = int(self._get_panel_setting("DOWNLOAD-CHUNK-SIZE"))
 
         # Gets the redirect link and opens a request stream to download the content
-        with requests.get(self._get_panel_setting("REDIRECT1"), stream=True) as r:
+        # Initialises an alive bar to show completion. This bar will be random within the allowed ones.
+        with requests.get(self._get_panel_setting("REDIRECT1"), stream=True) as r, \
+             alive_bar(int(r.headers["content-length"])//chunk_size+1, force_tty=True, title="[INFO] Downloading mods",
+                       monitor=False, length=50, elapsed=False, stats=False, bar=chosen_bar, spinner="classic",
+                       spinner_length=0) as bar, \
+             open(download_zip, 'wb') as file:
+
             r.raise_for_status()
-            content_size: int = int(r.headers["content-length"])
 
-            # Initialises an alive bar to show completion
-            with alive_bar(content_size//8192+1, force_tty=True, title="[INFO] Downloading mods", length=50, monitor=False,
-                           elapsed=False, stats=False, theme="smooth") as bar, open(download_zip, 'wb') as file:
+            # Downloads a moderately sized chunk per iteration, writing it into a zip in the "mods" folder.
+            for chunk in r.iter_content(chunk_size=8192):
+                file.write(chunk)
+                bar()
 
-                # Downloads a moderately sized chunk per iteration, writing it into a zip in the "mods" folder.
-                for chunk in r.iter_content(chunk_size=8192):
-                    file.write(chunk)
-                    bar()
-
-                # Finishes the remaining part of the progress bar (Because of precision losses)
-                while bar.current() < (content_size//8192):
-                    bar()
+            # Finishes the remaining part of the progress bar (Because of precision losses)
+            while bar.current() < (int(r.headers["content-length"])//chunk_size):
+                bar()
 
         # Extracts the zip contents into the mods folder
         with zipfile.ZipFile(download_zip, 'r') as zip_ref:
@@ -150,7 +154,7 @@ class ModpackDownloader:
         """
 
         for i in range(10):
-            sys.stdout.write(f"\r[INFO] Exiting in {10-i}s")
+            sys.stdout.write(f"\r[INFO] Exiting in {10-i} ")
             sys.stdout.flush()
             time.sleep(1)
 
