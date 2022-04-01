@@ -147,10 +147,10 @@ class ModpackDownloader:
         """
 
         for directory in [x for x in os.listdir(self.__mods_folder_path)
-                         if os.path.isdir(os.path.join(self.__mods_folder_path, x)) and x != ".OLD_FILES"]:
+                          if os.path.isdir(os.path.join(self.__mods_folder_path, x)) and x != ".OLD_FILES"]:
 
             # Ignore directories with no characters in their name
-            if any(char in directory for char in string.ascii_letters): continue
+            if not any(char in directory for char in string.ascii_letters): continue
 
             logger.info(f"Setting up the {directory} folder")
             dst_dirpath: str = os.path.join(self.__minecraft_folder, directory)
@@ -165,7 +165,7 @@ class ModpackDownloader:
                 filepath: str = os.path.join(src_dirpath, file)
                 shutil.move(filepath, dst_dirpath)
                 logger.debug(f"[>] Sent {file} to the {directory} folder")
-            
+
             os.rmdir(os.path.join(self.__mods_folder_path, directory))
 
 
