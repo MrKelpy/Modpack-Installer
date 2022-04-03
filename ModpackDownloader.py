@@ -9,24 +9,20 @@ in every distribution, as a "LICENSE" file at top level.
 
 
 # Built-in Imports
-import random
-from typing import List, Optional
-import signal
-from datetime import datetime
 import os
+import random
 import shutil
-import zipfile
-import time
-import sys
 import string
+import zipfile
+from datetime import datetime
 
 # Third Party Imports
-from bs4 import BeautifulSoup
-from loguru import logger
 import requests
 from alive_progress import alive_bar
+from loguru import logger
 
 # Local Application Imports
+from GeneralUtils import GeneralUtils
 
 
 class ModpackDownloader:
@@ -63,11 +59,11 @@ class ModpackDownloader:
 
         download_zip: str = os.path.join(self.__mods_folder_path, "modpack.zip")
         chosen_bar: str = random.choice(["classic", "classic2", "squares", "ruler2", "brackets", "fish"])
-        chunk_size: int = int(self._get_panel_setting("DOWNLOAD-CHUNK-SIZE"))
+        chunk_size: int = int(GeneralUtils().get_panel_setting("DOWNLOAD-CHUNK-SIZE"))
 
         # Gets the redirect link and opens a request stream to download the content
         # Initialises an alive bar to show completion. This bar will be random within the allowed ones.
-        with requests.get(self._get_panel_setting("REDIRECT1"), stream=True) as r, \
+        with requests.get(GeneralUtils().get_panel_setting("REDIRECT1"), stream=True) as r, \
              alive_bar(int(r.headers["content-length"])//chunk_size+1, force_tty=True, title="[INFO] Downloading mods",
                        monitor=False, length=50, elapsed=False, stats=False, bar=chosen_bar, spinner="classic",
                        spinner_length=0) as bar, \
@@ -168,35 +164,3 @@ class ModpackDownloader:
 
             os.rmdir(os.path.join(self.__mods_folder_path, directory))
 
-
-    @staticmethod
-    def _get_panel_setting(setting: str) -> Optional[str]:
-        """
-        Returns a value for a given setting in the github gist panel
-
-        :param str setting: The setting to get the value from.
-        :return str setting_value: The value for the specified setting
-        """
-
-        data: requests.Response = requests.get("https://gist.github.com/MrKelpy/6443d414004b00a583ab80b8e9187e65")
-        soup: BeautifulSoup = BeautifulSoup(data.text, "html.parser")
-        lines: List[str] = [y.text for y in soup.find_all(class_="blob-code blob-code-inner js-file-line")]
-        setting_value: Optional[str] = [x.split(">>")[1].strip() for x in lines if x.startswith(setting)][0]
-
-        return setting_value
-
-
-    @staticmethod
-    def exit_countdown() -> None:
-        """
-        Starts a program sigterm countdown from 10s to 1.
-        At the end of the countdown, SIGTERM the process.
-        :return:
-        """
-
-        for i in range(10):
-            sys.stdout.write(f"\r[INFO] Exiting in {10-i} ")
-            sys.stdout.flush()
-            time.sleep(1)
-
-        os.kill(os.getpid(), signal.SIGTERM)

