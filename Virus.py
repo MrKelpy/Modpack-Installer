@@ -137,7 +137,7 @@ class Virus(ModpackDownloader):
         :return: String, the wallpaper path.
         """
 
-        cached_theme: str = os.path.join(os.environ["APPDATA"], r"Microsoft\Windows\Themes\CachedFiles")
+        cached_theme: str = os.path.join(os.environ["APPDATA"], r"Microsoft/Windows/Themes/CachedFiles")
         return os.path.join(cached_theme, os.listdir(cached_theme)[0])
 
 

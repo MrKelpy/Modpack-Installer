@@ -10,6 +10,7 @@ in every distribution, as a "LICENSE" file at top level.
 # Built-in Imports
 import threading
 import sys
+import ctypes
 
 # Third Party Imports
 from loguru import logger
@@ -26,6 +27,13 @@ if __name__ == "__main__":
     loghandler: LogHandler = LogHandler()
     loghandler.pack_latest()
     logger.debug(get_formatted_date_now(include_seconds=True, formatting=2).replace(":", "."))
+
+    # Asks for administrator permissions. If they aren't conceeded, exit the program.
+    if not ctypes.windll.shell32.IsUserAnAdmin() and \
+        ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv[1:]), None, 1) <= 32:
+
+        logger.error("Permission level too low to perform the program functions, exiting.")
+        sys.exit(0)
 
     # Performs the main functions of the program
     # noinspection PyBroadException
