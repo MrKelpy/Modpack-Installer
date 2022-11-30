@@ -22,3 +22,4 @@ C:\dev\C#\ModpackInstallerLauncher\bin\Debug\System.Memory.xml
 C:\dev\C#\ModpackInstallerLauncher\bin\Debug\System.Numerics.Vectors.xml
 C:\dev\C#\ModpackInstallerLauncher\bin\Debug\System.Runtime.CompilerServices.Unsafe.xml
 C:\dev\C#\ModpackInstallerLauncher\bin\Debug\System.Threading.Tasks.Extensions.xml
+C:\dev\C#\ModpackInstallerLauncher\bin\Debug\ModpackInstallerLauncher.exe
